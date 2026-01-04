@@ -98,88 +98,256 @@ import javax.swing.*;
 import src.controllers.NewsControllerView;
 import src.business.News;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
+/**
+ * Edit News Screen with proper UI and error handling
+ */
 public class EditNewsScreen extends JFrame {
-    private JTextField titleField, contentField, categoryField, imageURLField, videoURLField;
+    private JTextField titleField;
+    private JTextArea contentArea;
+    private JTextField categoryField, imageURLField, videoURLField;
     private JButton saveButton, backButton;
     private News news;
+    private JFrame previousScreen;
+
     public EditNewsScreen(JFrame previousScreen, News news) {
-        this.news = news;
-
-        setTitle("Edit News");
-        setSize(400, 300);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridLayout(7, 2));
-
-        JLabel titleLabel = new JLabel("Title:");
-        titleField = new JTextField(news.getTitle());
-        add(titleLabel);
-        add(titleField);
-
-        JLabel contentLabel = new JLabel("Content:");
-        contentField = new JTextField(news.getContent());
-        add(contentLabel);
-        add(contentField);
-
-        JLabel categoryLabel = new JLabel("Category:");
-        categoryField = new JTextField(news.getNewsCategory());
-        add(categoryLabel);
-        add(categoryField);
-
-        JLabel imageURLLabel = new JLabel("Image URL:");
-        imageURLField = new JTextField(news.getImageURL());
-        add(imageURLLabel);
-        add(imageURLField);
-
-        JLabel videoURLLabel = new JLabel("Video URL:");
-        videoURLField = new JTextField(news.getVideoURL());
-        add(videoURLLabel);
-        add(videoURLField);
-
-        saveButton = new JButton("Save");
-        saveButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                NewsControllerView newsController = new NewsControllerView();
-                boolean success = newsController.editNews(
-                        news.getNewsId(),
-                        titleField.getText(),
-                        contentField.getText(),
-                        categoryField.getText(),
-                        imageURLField.getText(),
-                        videoURLField.getText()
-                );
-
-                if (success) {
-                    
-                    JOptionPane.showMessageDialog(EditNewsScreen.this, "News updated successfully!");
+        try {
+            if (news == null) {
+                JOptionPane.showMessageDialog(null, "Invalid news article! News object is null.", "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                if (previousScreen != null) {
                     previousScreen.setVisible(true);
-                //previousScreen.refreshUI();
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(EditNewsScreen.this, "Failed to update news!");
                 }
-            }
-        });
-        add(saveButton);
-
-        backButton = new JButton("Back");
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                previousScreen.setVisible(true);
                 dispose();
+                return;
             }
+
+            // Validate news has required fields
+            if (news.getNewsId() <= 0) {
+                JOptionPane.showMessageDialog(null, "Invalid news ID! Cannot edit this article.", "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                if (previousScreen != null) {
+                    previousScreen.setVisible(true);
+                }
+                dispose();
+                return;
+            }
+
+            this.news = news;
+            this.previousScreen = previousScreen;
+
+            initializeUI();
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error opening edit screen: " + e.getMessage(), "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            if (previousScreen != null) {
+                previousScreen.setVisible(true);
+            }
+            dispose();
+        }
+    }
+
+    private void initializeUI() {
+        setTitle("Edit News - Admin");
+        setSize(700, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+
+        // Main Panel
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        mainPanel.setBackground(new Color(245, 245, 250));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        // Title
+        JLabel titleLabel = new JLabel("Title:*");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        titleLabel.setForeground(new Color(40, 40, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        mainPanel.add(titleLabel, gbc);
+
+        titleField = new JTextField(news.getTitle() != null ? news.getTitle() : "", 40);
+        titleField.setFont(new Font("Arial", Font.PLAIN, 14));
+        titleField.setForeground(new Color(40, 40, 40));
+        titleField.setBackground(Color.WHITE);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(titleField, gbc);
+
+        // Content
+        JLabel contentLabel = new JLabel("Content:*");
+        contentLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        contentLabel.setForeground(new Color(40, 40, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.NONE;
+        mainPanel.add(contentLabel, gbc);
+
+        contentArea = new JTextArea(news.getContent() != null ? news.getContent() : "", 8, 40);
+        contentArea.setFont(new Font("Arial", Font.PLAIN, 14));
+        contentArea.setForeground(new Color(40, 40, 40));
+        contentArea.setBackground(Color.WHITE);
+        contentArea.setLineWrap(true);
+        contentArea.setWrapStyleWord(true);
+        JScrollPane contentScroll = new JScrollPane(contentArea);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.BOTH;
+        mainPanel.add(contentScroll, gbc);
+
+        // Category
+        JLabel categoryLabel = new JLabel("Category:");
+        categoryLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        categoryLabel.setForeground(new Color(40, 40, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.fill = GridBagConstraints.NONE;
+        mainPanel.add(categoryLabel, gbc);
+
+        categoryField = new JTextField(news.getNewsCategory() != null ? news.getNewsCategory() : "", 40);
+        categoryField.setFont(new Font("Arial", Font.PLAIN, 14));
+        categoryField.setForeground(new Color(40, 40, 40));
+        categoryField.setBackground(Color.WHITE);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(categoryField, gbc);
+
+        // Image URL
+        JLabel imageURLLabel = new JLabel("Image URL:");
+        imageURLLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        imageURLLabel.setForeground(new Color(40, 40, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.NONE;
+        mainPanel.add(imageURLLabel, gbc);
+
+        imageURLField = new JTextField(news.getImageURL() != null ? news.getImageURL() : "", 40);
+        imageURLField.setFont(new Font("Arial", Font.PLAIN, 14));
+        imageURLField.setForeground(new Color(40, 40, 40));
+        imageURLField.setBackground(Color.WHITE);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(imageURLField, gbc);
+
+        // Video URL
+        JLabel videoURLLabel = new JLabel("Video URL:");
+        videoURLLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        videoURLLabel.setForeground(new Color(40, 40, 40));
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.NONE;
+        mainPanel.add(videoURLLabel, gbc);
+
+        videoURLField = new JTextField(news.getVideoURL() != null ? news.getVideoURL() : "", 40);
+        videoURLField.setFont(new Font("Arial", Font.PLAIN, 14));
+        videoURLField.setForeground(new Color(40, 40, 40));
+        videoURLField.setBackground(Color.WHITE);
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(videoURLField, gbc);
+
+        add(mainPanel, BorderLayout.CENTER);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
+        buttonPanel.setBackground(new Color(245, 245, 250));
+
+        backButton = new JButton("← Cancel");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setBackground(new Color(240, 240, 240));
+        backButton.setForeground(new Color(60, 60, 60));
+        backButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        backButton.setPreferredSize(new Dimension(120, 35));
+        backButton.setFocusPainted(false);
+        backButton.addActionListener(e -> {
+            if (previousScreen != null) {
+                previousScreen.setVisible(true);
+            }
+            dispose();
         });
-        add(backButton);
+
+        saveButton = new JButton("💾 Save Changes");
+        saveButton.setFont(new Font("Arial", Font.BOLD, 14));
+        saveButton.setBackground(new Color(70, 130, 180));
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(50, 100, 150), 1),
+            BorderFactory.createEmptyBorder(8, 15, 8, 15)
+        ));
+        saveButton.setPreferredSize(new Dimension(150, 35));
+        saveButton.setFocusPainted(false);
+        saveButton.addActionListener(e -> handleSave());
+
+        buttonPanel.add(backButton);
+        buttonPanel.add(Box.createHorizontalStrut(10));
+        buttonPanel.add(saveButton);
+        add(buttonPanel, BorderLayout.SOUTH);
 
         setVisible(true);
     }
 
+    private void handleSave() {
+        // Validate fields
+        if (titleField.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Title cannot be empty!", "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (contentArea.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Content cannot be empty!", "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        try {
+            NewsControllerView newsController = new NewsControllerView();
+            boolean success = newsController.editNews(
+                news.getNewsId(),
+                titleField.getText().trim(),
+                contentArea.getText().trim(),
+                categoryField.getText().trim(),
+                imageURLField.getText().trim(),
+                videoURLField.getText().trim()
+            );
+
+            if (success) {
+                JOptionPane.showMessageDialog(this, "News updated successfully!", "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+                
+                // Refresh the previous screen if it has refreshUI method
+                if (previousScreen instanceof DisplayNewsScreen) {
+                    ((DisplayNewsScreen) previousScreen).refreshUI();
+                }
+                
+                if (previousScreen != null) {
+                    previousScreen.setVisible(true);
+                }
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to update news. Please try again.", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "An error occurred: " + e.getMessage(), 
+                "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Empty constructor for compatibility (should not be used)
     public EditNewsScreen() {
-        //TODO Auto-generated constructor stub
+        JOptionPane.showMessageDialog(null, "Please use EditNewsScreen(previousScreen, news) constructor!", 
+            "Error", JOptionPane.ERROR_MESSAGE);
+        dispose();
     }
 }
 

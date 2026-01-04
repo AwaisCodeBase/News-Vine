@@ -68,10 +68,14 @@ package src.controllers;
 
 import src.business.News;
 import src.technical.NewsHandler;
+import src.controllers.AuthController;
 
 import javax.swing.*;
 import java.util.List;
 
+/**
+ * News Controller with role-based access and search functionality
+ */
 public class NewsControllerView {
 
     private NewsHandler newsHandler;
@@ -80,41 +84,108 @@ public class NewsControllerView {
         this.newsHandler = new NewsHandler();
     }
 
-    public boolean addnews(String NewsId, String title, String content, String category, String imageURL, String videoURL) {
-        try {
-            int newsId = Integer.parseInt(NewsId);
-            News news = new News(newsId, title, content, category, imageURL, videoURL);
-            return newsHandler.addNews(news);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid News ID format.");
+    /**
+     * Add news (Admin only)
+     */
+    public boolean addNews(String title, String content, String category, String imageURL, String videoURL) {
+        // Check if user is logged in and is admin
+        if (!AuthController.isAdmin()) {
+            JOptionPane.showMessageDialog(null, "Only admins can post news!", "Access Denied", JOptionPane.ERROR_MESSAGE);
             return false;
         }
+
+        if (title == null || title.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Title cannot be empty!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        if (content == null || content.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Content cannot be empty!", "Validation Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        int authorId = AuthController.getCurrentUser().getUserId();
+        News news = new News(title, content, category, imageURL, videoURL, authorId);
+        return newsHandler.addNews(news);
     }
 
+    /**
+     * Edit news (Admin only)
+     */
     public boolean editNews(int postId, String newTitle, String newContent, String newCategory, String newImageURL, String newVideoURL) {
-        // Create a News object with the updated information
+        // Check if user is logged in and is admin
+        if (!AuthController.isAdmin()) {
+            JOptionPane.showMessageDialog(null, "Only admins can edit news!", "Access Denied", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        News existingNews = newsHandler.getNewsById(postId);
+        if (existingNews == null) {
+            JOptionPane.showMessageDialog(null, "News not found!", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+
+        // Create updated news object
         News updatedNews = new News(postId, newTitle, newContent, newCategory, newImageURL, newVideoURL);
+        updatedNews.setNewsId(postId);
         
-        // Pass the complete News object to the news handler's updateNews method
         return newsHandler.updateNews(updatedNews);
     }
-    
 
-    // public boolean editNews(int postId, String newImageURL, String newVideoURL) {
-    //     return newsHandler.updateNews(postId, newImageURL, newVideoURL);
-    // }
+    /**
+     * Delete news (Admin only)
+     */
+    public boolean deleteNews(String newsId) {
+        // Check if user is logged in and is admin
+        if (!AuthController.isAdmin()) {
+            JOptionPane.showMessageDialog(null, "Only admins can delete news!", "Access Denied", JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
 
-    public boolean deletenews(String newsId) {
         try {
             int id = Integer.parseInt(newsId);
             return newsHandler.deleteNews(id);
         } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(null, "Invalid News ID format.");
+            JOptionPane.showMessageDialog(null, "Invalid News ID format.", "Error", JOptionPane.ERROR_MESSAGE);
             return false;
         }
     }
 
+    /**
+     * Get all news
+     */
     public List<News> getAllNews() {
         return newsHandler.getAllNews();
+    }
+
+    /**
+     * Get all news with sorting
+     */
+    public List<News> getAllNews(String sortBy, String order) {
+        return newsHandler.getAllNews(sortBy, order);
+    }
+
+    /**
+     * Search news
+     */
+    public List<News> searchNews(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllNews();
+        }
+        return newsHandler.searchNews(searchTerm.trim());
+    }
+
+    /**
+     * Get news by category
+     */
+    public List<News> getNewsByCategory(String category) {
+        return newsHandler.getNewsByCategory(category);
+    }
+
+    /**
+     * Get news by ID
+     */
+    public News getNewsById(int newsId) {
+        return newsHandler.getNewsById(newsId);
     }
 }

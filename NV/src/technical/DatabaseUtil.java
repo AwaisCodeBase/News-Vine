@@ -10,8 +10,26 @@ public class DatabaseUtil {
     private static final String USER = "root"; // my default username
     private static final String PASSWORD = ""; // password is empty
 
+    static {
+        // Load MySQL JDBC driver
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("MySQL JDBC Driver not found!");
+            e.printStackTrace();
+        }
+    }
+
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
+        try {
+            Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+            return conn;
+        } catch (SQLException e) {
+            System.err.println("Database connection failed!");
+            System.err.println("URL: " + URL);
+            System.err.println("Error: " + e.getMessage());
+            throw e;
+        }
     }
     
 }

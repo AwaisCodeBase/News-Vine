@@ -1,5 +1,10 @@
 package src.business;
-import src.technical.*;
+
+import java.sql.Timestamp;
+
+/**
+ * News entity class with author support
+ */
 public class News {
 
     private int news_id;
@@ -8,48 +13,126 @@ public class News {
     private String news_category;
     private String imageURL;
     private String videoURL;
-    private int rating;
+    private int author_id;
+    private Timestamp created_at;
+    private Timestamp updated_at;
+    private String author_name; // For display purposes
 
-
-    public News(int newsid, String title, String  content,String newscategory, String imageURL, String videoURL, int rating) {
-        this.news_id = newsid;
+    // Constructor for creating new news
+    public News(String title, String content, String news_category, String imageURL, String videoURL, int author_id) {
         this.title = title;
         this.content = content;
-        this.news_category = newscategory;
+        this.news_category = news_category;
         this.imageURL = imageURL;
         this.videoURL = videoURL;
-        this.rating = rating;
+        this.author_id = author_id;
     }
-    public News(int newsid,String title, String  content,
-    String newscategory, String imageURL, String videoURL) {
-        this.news_id = newsid;
+
+    // Constructor for loading from database
+    public News(int news_id, String title, String content, String news_category, String imageURL, String videoURL, int author_id, Timestamp created_at, Timestamp updated_at) {
+        this.news_id = news_id;
         this.title = title;
         this.content = content;
-        this.news_category = newscategory;
+        this.news_category = news_category;
         this.imageURL = imageURL;
         this.videoURL = videoURL;
-       
+        this.author_id = author_id;
+        this.created_at = created_at;
+        this.updated_at = updated_at;
     }
 
-    // Getters for News properties
-    public int getNewsId() { return news_id; }
-    public String getContent(){return content;}
-    public String getTitle() { return title; }
-    public String getNewsCategory() { return news_category; }
-    public String getImageURL() { return imageURL; }
-    public String getVideoURL() { return videoURL; }
-    public int getRating() { return rating; }
+    // Constructor with author name for display
+    public News(int news_id, String title, String content, String news_category, String imageURL, String videoURL, int author_id, Timestamp created_at, Timestamp updated_at, String author_name) {
+        this.news_id = news_id;
+        this.title = title;
+        this.content = content;
+        this.news_category = news_category;
+        this.imageURL = imageURL;
+        this.videoURL = videoURL;
+        this.author_id = author_id;
+        this.created_at = created_at;
+        this.updated_at = updated_at;
+        this.author_name = author_name;
+    }
 
-    public String postNews(Integer news_id,String title, String content, String category, String imageURL, String videoURL) {
-        News news = new News(news_id,title, content,category, imageURL,videoURL); // Create a new News object
-        NewsHandler newsHandler = new NewsHandler();
-        
-        boolean success = newsHandler.addNews(news);
-        if (success) {
-            return "Posted Successfully!";
-        } else {
-            return "Failed to post news.";
-        }
+    // Legacy constructor for backward compatibility
+    public News(int news_id, String title, String content, String news_category, String imageURL, String videoURL) {
+        this.news_id = news_id;
+        this.title = title;
+        this.content = content;
+        this.news_category = news_category;
+        this.imageURL = imageURL;
+        this.videoURL = videoURL;
+    }
+
+    // Getters
+    public int getNewsId() { 
+        return news_id; 
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public String getTitle() { 
+        return title; 
+    }
+
+    public String getNewsCategory() { 
+        return news_category; 
+    }
+
+    public String getImageURL() { 
+        return imageURL; 
+    }
+
+    public String getVideoURL() { 
+        return videoURL; 
+    }
+
+    public int getAuthorId() {
+        return author_id;
+    }
+
+    public Timestamp getCreatedAt() {
+        return created_at;
+    }
+
+    public Timestamp getUpdatedAt() {
+        return updated_at;
+    }
+
+    public String getAuthorName() {
+        return author_name;
+    }
+
+    public void setAuthorName(String author_name) {
+        this.author_name = author_name;
+    }
+
+    // Setters
+    public void setNewsId(int news_id) {
+        this.news_id = news_id;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setNewsCategory(String news_category) {
+        this.news_category = news_category;
+    }
+
+    public void setImageURL(String imageURL) {
+        this.imageURL = imageURL;
+    }
+
+    public void setVideoURL(String videoURL) {
+        this.videoURL = videoURL;
     }
 }
 
